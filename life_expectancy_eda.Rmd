@@ -1,0 +1,27 @@
+---
+title: "Life Expectancy EDA"
+author: "Adina Zhang"
+date: "April 3, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(dplyr)
+library(GGally)
+
+# Load dataset
+life_exp = read_csv("./Life Expectancy Data.csv") %>% janitor::clean_names()
+```
+
+
+## EDA
+
+```{r}
+# Continuous variables
+cont = life_exp %>% select(-country, -status)
+
+
+```
+
