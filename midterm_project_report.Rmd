@@ -1,0 +1,18 @@
+---
+title: "Midterm Project Report"
+author: "Rachel Tsong and Adina Zhang"
+date: "April 7, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introduction
+
+## EDA
+
+## Model Building
+
+## Conclusions
