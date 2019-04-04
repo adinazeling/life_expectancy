@@ -18,6 +18,12 @@ life_exp = read_csv("./Life Expectancy Data.csv") %>% janitor::clean_names()
 ## EDA
 
 ```{r}
+summary = skimr::skim_to_list(life_exp)
+rbind(summary$integer, summary$numeric) %>% 
+  select(variable:p100) %>% 
+  knitr::kable()
+
+
 # Continuous variables
 cont = life_exp %>% select(-country, -status)
 # Scatterplots 
@@ -26,21 +32,39 @@ pairs(cont[,c(2,7:10)])
 pairs(cont[,c(2,11:14)])
 pairs(cont[,c(2,15:17)])
 pairs(cont[,c(2,18:20)])
+
 ```
 
 Non-linear variables:
-* percentage_expenditure
+* log gdp
 * hiv_aids
 * gdp
 * alcohol
 * bmi
 * thinness_5_9_years
-
-We should eliminate a few variables to potentially avoid multicollinearity. Check collinearity between gdp, percentage expenditure, and total expenditure. When looking at some of the correlation tables, there are sometimes two distinct slopes. This probably comes from the "developing" class. 
-
-Variables that show very little correlation with life expectancy:
-* population
-* measles
-* hepatitis b
-* total expenditure
+* hepatitis_b
+* total_expenditure
 * thinness_1_19_years
+* thinness_5_9_years
+* log transformed under_five_deaths
+
+We should eliminate a few variables to create a slightly more parsimonious model.
+
+Variables that we will eliminate:
+* population (no significant relationship to life expectancy)
+* infant deaths (highly correlated with under five deaths)
+* measles (no significant relationship to life expectancy)
+* polio or diptheria (highly correlated to each other)
+* percentage_expenditure (highly correlated to loggdp)
+
+```{r}
+# Dataset for analysis
+life_analysis = life_exp %>% 
+  select(-country, -population, -infant_deaths, -measles, -polio,
+         -percentage_expenditure) %>% 
+  mutate(log_gdp = log(gdp + 0.1),
+         log_under_five = log(under_five_deaths + 0.1)) %>% 
+  select(-gdp, -under_five_deaths)
+
+```
+
