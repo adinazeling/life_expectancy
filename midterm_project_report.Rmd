@@ -11,6 +11,12 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Introduction
 
+The dataset for our analysis was compiled by the Global Health Observatory (GHO), a branch of the World Health Organization (WHO). The repository contains data collected from 2000 to 2015 from 193 countries about factors relating to life expectancy. These factors include mortality rates of adults as well as infants and children, economic factors such as GDP and government health expenditures, disease related data such as incidence of measles and HIV, and health related variables such as BMI and alcohol consumption. Our analysis aims answer the following questions:
+* Which covariates are most predictive of life expectancy?
+* What kind of model most accurately predicts life expectancy?
+The results of analyses such as ours can be used by governments to direct resources and health care expenditures on the variables that are most strongly associated with life expectancy in order to improve the population’s longevity and livelihood.
+
+
 ## EDA
 
 ## Model Building

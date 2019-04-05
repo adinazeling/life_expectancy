@@ -1,0 +1,73 @@
+---
+title: "Splines"
+author: "Rachel Tsong"
+date: "April 4, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(caret)# only for plot
+library(splines)
+library(lasso2)# only for data
+library(mgcv)
+library(tidyverse)
+```
+
+Tidied and reduced dataset
+```{r}
+life_analysis = read_csv("./Life Expectancy Data.csv") %>% 
+  janitor::clean_names() %>%
+  select(-country, -population, -infant_deaths, -measles, -polio,
+         -percentage_expenditure) %>% 
+  mutate(log_gdp = log(gdp + 0.1),
+         log_under_five = log(under_five_deaths + 0.1)) %>% 
+  select(-gdp, -under_five_deaths) %>%
+  select(life_expectancy, everything())
+```
+
+fit polynomial regressions
+```{r}
+fit1 = lm(life_expectancy ~ ., data = life_analysis)
+fit2 = lm(life_expectancy ~ poly(year,2, raw = TRUE) +
+                            poly(adult_mortality, 2, raw = TRUE) + 
+                            poly(alcohol, 2, raw = TRUE) +
+                            poly(hepatitis_b, 2, raw = TRUE) +
+                            poly(bmi, 2, raw = TRUE) +
+                            poly(total_expenditure, 2, raw = TRUE) +
+                            poly(diphtheria, 2, raw = TRUE) +
+                            poly(hiv_aids, 2, raw = TRUE) +
+                            poly(thinness_1_19_years, 2, raw = TRUE) +
+                            poly(thinness_5_9_years, 2, raw = TRUE) +
+                            poly(income_composition_of_resources, 2, raw = TRUE) +
+                            poly(schooling, 2, raw = TRUE) +
+                            poly(log_gdp, 2, raw = TRUE) +
+                            poly(log_under_five, 2, raw = TRUE),
+          data = life_analysis)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
