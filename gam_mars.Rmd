@@ -1,0 +1,84 @@
+---
+title: "GAM"
+author: "Rachel Tsong"
+date: "April 4, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(caret)# only for plot
+library(splines)
+library(lasso2)# only for data
+library(mgcv)
+library(tidyverse)
+library(modelr)
+```
+
+Tidied and reduced dataset
+```{r}
+life_analysis = read_csv("./Life Expectancy Data.csv") %>% 
+  janitor::clean_names() %>%
+  select(-country, -population, -infant_deaths, -measles, -polio,
+         -percentage_expenditure) %>% 
+  mutate(status = ifelse(status == "Developed", 1, 0)) %>%
+  select(life_expectancy, everything())
+
+life_analysis = na.omit(life_analysis)
+```
+
+Fit GAM
+```{r}
+gam = gam(life_expectancy ~ s(gdp) + s(hiv_aids) + s(alcohol) + s(bmi) + s(hepatitis_b) + s(total_expenditure) + s(thinness_1_19_years) +s(thinness_5_9_years) + s(under_five_deaths) + year + status + adult_mortality + income_composition_of_resources + schooling + diphtheria, data = life_analysis)
+
+plot(gam)
+```
+
+```{r}
+broom::tidy(gam)
+summary(gam)
+```
+
+```{r}
+# matrix of predictors
+x = model.matrix(life_expectancy ~ ., life_analysis)[,-1]
+#vector of response
+y = life_analysis$life_expectancy
+```
+
+
+```{r}
+# create training and testing data
+set.seed(1)
+cv_life = crossv_kfold(life_analysis, k = 10) %>% 
+          mutate(train = map(train, as_tibble),
+                 test = map(test, as_tibble))
+# fit models to training data and obtain RMSEs for the testing data
+cv_life = cv_life %>% 
+  mutate(gam = map(train, ~ gam(life_expectancy ~ s(gdp) + s(hiv_aids) + s(alcohol) + s(bmi) + s(hepatitis_b) + s(total_expenditure) + s(thinness_1_19_years) +s(thinness_5_9_years) + s(under_five_deaths) + year + status + adult_mortality + income_composition_of_resources + schooling + diphtheria, data = .x))) %>%
+  mutate(rmse_gam = map2_dbl(gam, test, ~ rmse(model = .x, data = .y)))
+```
+
+```{r}
+mean(cv_life$rmse_gam)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

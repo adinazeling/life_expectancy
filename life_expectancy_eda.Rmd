@@ -41,10 +41,8 @@ life_exp %>% ggplot(aes(y = life_expectancy, color = status)) +
 Non-linear variables:
 * log gdp
 * hiv_aids
-* gdp
 * alcohol
 * bmi
-* thinness_5_9_years
 * hepatitis_b
 * total_expenditure
 * thinness_1_19_years
