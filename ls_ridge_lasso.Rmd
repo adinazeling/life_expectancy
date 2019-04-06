@@ -84,6 +84,10 @@ predy.ridge = predict(ridge.fit$finalModel,
 mse_ridge = mean((predy.ridge - y2)^2)
 
 plot(ridge.fit, xTrans = function(x) log(x))
+
+ridge_coefficients = predict(ridge.fit$finalModel, newx = x2,
+                       s = best.lambda, type = "coefficients")
+summary(ridge_coefficients)
 ```
 
 ### Lasso
@@ -107,14 +111,10 @@ mse_lasso = mean((predy.lasso - y2)^2)
 plot(lasso.fit, xTrans = function(x) log(x))
 
 # Summary of coefficients
-coefficients = predict(lasso.fit$finalModel, newx = x2,
+lasso_coefficients = predict(lasso.fit$finalModel, newx = x2,
                        s = best.lambda, type = "coefficients")
-summary(coefficients)
+summary(lasso_coefficients)
 ```
 
 
-```{r}
-set.seed(2)
-
-```
 
