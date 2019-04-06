@@ -17,14 +17,11 @@ library(glmnet)
 # Load dataset
 life_analysis = read_csv("./Life Expectancy Data.csv") %>% 
   janitor::clean_names() %>%
-  select(-country, -population, -infant_deaths, -measles, -polio,
-         -percentage_expenditure) %>% 
-  mutate(log_gdp = log(gdp + 0.1),
-         log_under_five = log(under_five_deaths + 0.1),
-         status = factor(status),
+  select(-country, -population, -infant_deaths, -measles, 
+         -polio, -thinness_5_9_years, -percentage_expenditure) %>% 
+  mutate(status = factor(status),
          status = fct_recode(status, "0" = "Developing", "1" = "Developed"),
-         status = as.integer(status)) %>% 
-  select(-gdp, -under_five_deaths)
+         status = ifelse(status == "1", 1, 0)) 
 
 life_analysis = na.omit(life_analysis)
 
@@ -34,11 +31,17 @@ train_rows = createDataPartition(life_analysis$life_expectancy,
                                  p = 0.75,
                                  list = F)
 
-# Training Set
+# Specify test and training datasets
 train_df = life_analysis[train_rows,]
 # Test Set
 test_df = life_analysis[-train_rows,]
 
+# Predictor variable
+x = model.matrix(life_expectancy~., train_df)[,-3]
+x2 = model.matrix(life_expectancy~., test_df)[,-3]
+# Outcome variable
+y = train_df$life_expectancy
+y2 = test_df$life_expectancy
 ```
 
 
@@ -56,6 +59,59 @@ ls.fit = train(life_expectancy ~.,
                trControl = ctrl1)
 # MSE Calculation
 predy.lm = predict(ls.fit$finalModel, newdata = test_df)
-mse = ((predy.lm - train_df$life_expectancy)^2)
+mse = mean((predy.lm - test_df$life_expectancy)^2)
 ```
+
+## Ridge Regression
+
+```{r}
+set.seed(123)
+# Ridge model
+ridge.fit = train(x, y,
+                  method = "glmnet",
+                  tuneGrid = expand.grid(alpha = 0,
+                                         lambda = exp(seq(-2, 20, length = 100))),
+                  trControl = ctrl1)
+best.lambda = ridge.fit$bestTune$lambda
+
+# MSE Calculation
+predy.ridge = predict(ridge.fit$finalModel, 
+                      newx = x2,
+                      s = best.lambda, type = "response")
+mse_ridge = mean((predy.ridge - y2)^2)
+
+plot(ridge.fit, xTrans = function(x) log(x))
+
+ridge_coefficients = predict(ridge.fit$finalModel, newx = x2,
+                       s = best.lambda, type = "coefficients")
+summary(ridge_coefficients)
+```
+
+### Lasso
+
+```{r}
+set.seed(123)
+# Ridge model
+lasso.fit = train(x, y,
+                  method = "glmnet",
+                  tuneGrid = expand.grid(alpha = 1,
+                                         lambda = exp(seq(-2, 5, length = 100))),
+                  trControl = ctrl1)
+best.lambda = lasso.fit$bestTune$lambda
+
+# MSE Calculation
+predy.lasso = predict(lasso.fit$finalModel, 
+                      newx = x2,
+                      s = best.lambda, type = "response")
+mse_lasso = mean((predy.lasso - y2)^2)
+
+plot(lasso.fit, xTrans = function(x) log(x))
+
+# Summary of coefficients
+lasso_coefficients = predict(lasso.fit$finalModel, newx = x2,
+                       s = best.lambda, type = "coefficients")
+summary(lasso_coefficients)
+```
+
+
 

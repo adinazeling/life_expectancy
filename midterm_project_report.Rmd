@@ -1,24 +1,65 @@
 ---
-title: "Midterm Project Report"
+title: "A Predictive Model for Life Expectancy"
 author: "Rachel Tsong and Adina Zhang"
 date: "April 7, 2019"
 output: html_document
 ---
 
-```{r setup, include=FALSE}
+```{r setup, include = FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(dplyr)
+library(caret)
 ```
 
 ## Introduction
 
-The dataset for our analysis was compiled by the Global Health Observatory (GHO), a branch of the World Health Organization (WHO). The repository contains data collected from 2000 to 2015 from 193 countries about factors relating to life expectancy. These factors include mortality rates of adults as well as infants and children, economic factors such as GDP and government health expenditures, disease related data such as incidence of measles and HIV, and health related variables such as BMI and alcohol consumption. Our analysis aims answer the following questions:
+The dataset for our analysis was compiled by the Global Health Observatory (GHO), a branch of the World Health Organization (WHO). The repository contains data collected from 2000 to 2015 from 193 countries about factors relating to life expectancy. These factors include mortality rates of adults as well as infants and children, economic factors such as GDP and government health expenditures, disease related data such as incidence of measles and HIV, and health related variables such as BMI and alcohol consumption. Our analysis aims to answer the following questions:
+
 * Which covariates are most predictive of life expectancy?
-* What kind of model most accurately predicts life expectancy?
+* What modeling method most accurately predicts life expectancy?
+
 The results of analyses such as ours can be used by governments to direct resources and health care expenditures on the variables that are most strongly associated with life expectancy in order to improve the population’s longevity and livelihood.
 
+### Data Cleaning
+
+The original data set has 22 variables and 2938 observations from 193 countries between 2000 and 2015. A correlation matrix was used to assess the predictors to determine if there were any highly correlated variables. In order to avoid multicollinearity and to create a more parsimonious model, highly correlated variables were removed. Among the variables removed were infant deaths, percentage expenditure, measles, polio, and thinness for children ages 5 to 9 years. Population was also removed from the dataset because it is not an appropriate standardized measurement for life expectancy. Without adjusting population for area it is not a good comparative measurement. One dichotomous variable in our dataset that describes development status was recoded into an integer with groups 0 and 1. Any entries with NAs were omitted. The final analysis dataset has 15 variables with 1853 observations. 
 
 ## EDA
+
+In exploratory data analysis, one of the main goals was to characterize the relationship of predictors with life expectancy. From the scatterplot in Figure _, we were able to conclude that several predictors potentially have a non-linear relationship with life expectancy. These predictors include GDP, thinness of children ages 1-19, BMI, total expenditure, diphtheria, HIV/AIDS, adult mortality, alcohol, and hepatitis B. 
+
+```{r, include = FALSE, message = FALSE, warning = FALSE}
+# Load dataset
+life_analysis = read_csv("./Life Expectancy Data.csv") %>% 
+  janitor::clean_names() %>%
+  select(-country, -population, -infant_deaths, -measles, 
+         -polio, -thinness_5_9_years, -percentage_expenditure) %>% 
+  mutate(status = factor(status),
+         status = fct_recode(status, "0" = "Developing", "1" = "Developed"),
+         status = ifelse(status == "1", 1, 0)) 
+life_analysis = na.omit(life_analysis)
+```
+
+```{r, echo = FALSE}
+# Scatterplot
+x = model.matrix(life_expectancy ~., life_analysis)
+y = life_analysis$life_expectancy
+
+theme1 <- trellis.par.get()
+theme1$plot.symbol$col <- rgb(.2, .4, .2, .5)
+theme1$plot.symbol$pch <- 16
+theme1$strip.background$col <- rgb(.0, .2, .6, .2)
+trellis.par.set(theme1)
+featurePlot(x[,-1], y, plot = "scatter", labels = c("","Life Expectancy"))
+```
+
 
 ## Model Building
 
 ## Conclusions
+
+
+\newpage
+
+## Appendix
