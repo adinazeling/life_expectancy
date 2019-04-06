@@ -9,6 +9,7 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(dplyr)
+library(corrplot)
 
 # Load dataset
 life_exp = read_csv("./Life Expectancy Data.csv") %>% janitor::clean_names()
@@ -36,6 +37,11 @@ pairs(cont[,c(2,18:20)])
 # Binary variable
 life_exp %>% ggplot(aes(y = life_expectancy, color = status)) + 
   geom_boxplot()
+
+# Correlation plot
+cont = na.omit(cont)
+x = model.matrix(life_expectancy ~., cont)[,-3]
+corrplot(cor(x[,-1]))
 ```
 
 Non-linear variables:
@@ -56,9 +62,10 @@ We should eliminate a few variables to create a slightly more parsimonious model
 Variables that we will eliminate:
 * population (no significant relationship to life expectancy)
 * infant deaths (highly correlated with under five deaths)
-* measles (no significant relationship to life expectancy)
+* measles (no significant relationship to life expectancy, highly correlated to infant deaths and under five deaths)
 * polio or diptheria (highly correlated to each other)
-* percentage_expenditure (highly correlated to loggdp)
+* percentage_expenditure (highly correlated to gdp)
+* thinness_5_9_years
 
 ```{r}
 # Dataset for analysis

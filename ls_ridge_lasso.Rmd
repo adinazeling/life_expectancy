@@ -17,14 +17,11 @@ library(glmnet)
 # Load dataset
 life_analysis = read_csv("./Life Expectancy Data.csv") %>% 
   janitor::clean_names() %>%
-  select(-country, -population, -infant_deaths, -measles, -polio,
-         -percentage_expenditure) %>% 
-  mutate(log_gdp = log(gdp + 0.1),
-         log_under_five = log(under_five_deaths + 0.1),
-         status = factor(status),
+  select(-country, -population, -infant_deaths, -measles, 
+         -polio, -thinness_5_9_years, -percentage_expenditure) %>% 
+  mutate(status = factor(status),
          status = fct_recode(status, "0" = "Developing", "1" = "Developed"),
-         status = ifelse(status == "1", 1, 0)) %>% 
-  select(-gdp, -under_five_deaths)
+         status = ifelse(status == "1", 1, 0)) 
 
 life_analysis = na.omit(life_analysis)
 
@@ -98,7 +95,7 @@ set.seed(123)
 lasso.fit = train(x, y,
                   method = "glmnet",
                   tuneGrid = expand.grid(alpha = 1,
-                                         lambda = exp(seq(-2, 20, length = 100))),
+                                         lambda = exp(seq(-2, 5, length = 100))),
                   trControl = ctrl1)
 best.lambda = lasso.fit$bestTune$lambda
 
