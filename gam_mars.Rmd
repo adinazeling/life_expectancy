@@ -22,8 +22,7 @@ Tidied and reduced dataset
 ```{r}
 life_analysis = read_csv("./Life Expectancy Data.csv") %>% 
   janitor::clean_names() %>%
-  select(-country, -population, -infant_deaths, -measles, -polio,
-         -percentage_expenditure) %>% 
+  select(-country, -population, -infant_deaths, -measles, -polio, -thinness_5_9_years, -percentage_expenditure) %>% 
   mutate(status = ifelse(status == "Developed", 1, 0)) %>%
   select(life_expectancy, everything())
 
@@ -33,9 +32,23 @@ life_analysis = na.omit(life_analysis)
 ### Fit GAM
 
 ```{r}
-gam = gam(life_expectancy ~ s(gdp) + s(hiv_aids) + s(alcohol) + s(bmi) + s(hepatitis_b) + s(total_expenditure) + s(thinness_1_19_years) +s(thinness_5_9_years) + s(under_five_deaths) + year + status + adult_mortality + income_composition_of_resources + schooling + diphtheria, data = life_analysis)
+gam = gam(life_expectancy ~ s(gdp) + 
+            s(hiv_aids) + 
+            s(alcohol) + 
+            s(bmi) + 
+            s(hepatitis_b) + 
+            s(total_expenditure) + 
+            s(thinness_1_19_years)  + 
+            s(under_five_deaths) +
+            s(diphtheria) +
+            year + 
+            status + 
+            adult_mortality + 
+            income_composition_of_resources +
+            schooling, 
+          data = life_analysis)
 
-plot(gam)
+plot(gam, pages = 1)
 ```
 
 ```{r}
@@ -58,7 +71,21 @@ cv_df = crossv_kfold(life_analysis, k = 10) %>%
                  test = map(test, as_tibble))
 # fit models to training data and obtain RMSEs for the testing data
 cv_gam = cv_df %>% 
-  mutate(gam = map(train, ~ gam(life_expectancy ~ s(gdp) + s(hiv_aids) + s(alcohol) + s(bmi) + s(hepatitis_b) + s(total_expenditure) + s(thinness_1_19_years) +s(thinness_5_9_years) + s(under_five_deaths) + year + status + adult_mortality + income_composition_of_resources + schooling + diphtheria, data = .x))) %>%
+  mutate(gam = map(train, ~ gam(life_expectancy ~ s(gdp) + 
+                                  s(hiv_aids) + 
+                                  s(alcohol) + 
+                                  s(bmi) + 
+                                  s(hepatitis_b) + 
+                                  s(total_expenditure) + 
+                                  s(thinness_1_19_years) + 
+                                  s(under_five_deaths) + 
+                                  year + 
+                                  status + 
+                                  adult_mortality + 
+                                  income_composition_of_resources + 
+                                  schooling + 
+                                  s(diphtheria), 
+                                data = .x))) %>%
   mutate(rmse_gam = map2_dbl(gam, test, ~ rmse(model = .x, data = .y)))
 ```
 

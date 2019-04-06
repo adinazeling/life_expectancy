@@ -52,7 +52,6 @@ Non-linear variables:
 * hepatitis_b
 * total_expenditure
 * thinness_1_19_years
-* thinness_5_9_years
 * log transformed under_five_deaths
 
 We should eliminate a few variables to create a slightly more parsimonious model.
@@ -68,8 +67,7 @@ Variables that we will eliminate:
 ```{r}
 # Dataset for analysis
 life_analysis = life_exp %>% 
-  select(-country, -population, -infant_deaths, -measles, -polio,
-         -percentage_expenditure) %>% 
+  select(-country, -population, -infant_deaths, -measles, -polio, -percentage_expenditure, -thinness_5_9_years) %>% 
   mutate(log_gdp = log(gdp + 0.1),
          log_under_five = log(under_five_deaths + 0.1)) %>% 
   select(-gdp, -under_five_deaths)
