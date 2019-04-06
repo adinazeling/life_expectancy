@@ -11,6 +11,7 @@ library(tidyverse)
 library(dplyr)
 library(caret)
 library(glmnet)
+library(modelr)
 ```
 
 ```{r, message = FALSE}
@@ -99,6 +100,10 @@ lasso.fit = train(x, y,
                   trControl = ctrl1)
 best.lambda = lasso.fit$bestTune$lambda
 
+set.seed(123)
+cv_lasso = cv.glmnet(x, y, alpha = 1)
+best_lambda = cv_lasso$lambda.min
+
 # MSE Calculation
 predy.lasso = predict(lasso.fit$finalModel, 
                       newx = x2,
@@ -114,4 +119,65 @@ summary(lasso_coefficients)
 ```
 
 
+```{r}
+
+y_data = function(data){
+  y = data$life_expectancy
+}
+
+lasso_rmse = function(model, x2, y2){
+  predictions = model %>% predict(x2) %>% as.vector()
+  rmse_lasso = RMSE(predictions, y2)
+  return(rmse_lasso)
+}
+
+set.seed(281)
+cv_df = crossv_kfold(life_analysis, k = 10) %>% 
+  mutate(train = map(train, as_tibble),
+         test = map(test, as_tibble),
+         x = map(train, ~model.matrix(life_expectancy ~ ., data = .x)[,-3]),
+         x2 = map(test, ~model.matrix(life_expectancy ~ ., data = .x)[,-3]),
+         y = map(train, y_data),
+         y2 = map(test, y_data))
+
+# Fit Models
+cv_df = cv_df %>% 
+  mutate(ls_mod = map(train, ~lm(life_expectancy ~ ., data = .x)), 
+         lasso_mod = map2(x, y, ~glmnet(x = .x, 
+                                        y = .y, alpha = 1, 
+                                        lambda = best_lambda)),
+         gam = map(train, ~ gam(life_expectancy ~ s(gdp) + 
+                                  s(hiv_aids) + 
+                                  s(alcohol) + 
+                                  s(bmi) + 
+                                  s(hepatitis_b) + 
+                                  s(total_expenditure) + 
+                                  s(thinness_1_19_years) + 
+                                  s(under_five_deaths) + 
+                                  year + 
+                                  status + 
+                                  adult_mortality + 
+                                  income_composition_of_resources + 
+                                  schooling + 
+                                  s(diphtheria), 
+                                data = .x)),
+         mars = map(train, ~ earth(life_expectancy ~ . , data = life_analysis, 
+                                   degree = 2, nprune = 27), data = .x)) %>% 
+  mutate(rmse_ls = map2_dbl(ls_mod, test, ~rmse(model = .x, data = .y)),
+         rmse_lasso = pmap_dbl(list(lasso_mod, x2, y2), lasso_rmse),
+         rmse_gam = map2_dbl(gam, test, ~ rmse(model = .x, data = .y)),
+         rmse_mars = map2_dbl(mars, test, ~ rmse(model = .x, data = .y)))
+
+cv_df %>% 
+  select(starts_with("rmse")) %>% 
+  gather(key = model, value = rmse) %>% 
+  mutate(model = str_replace(model, "rmse_", ""),
+         model = fct_inorder(model)) %>% 
+  ggplot(aes(y = rmse, fill = model)) + 
+  geom_boxplot() + 
+  labs(
+    title = "10-Fold Cross Validation Results"
+  ) +
+  theme_bw()
+```
 
