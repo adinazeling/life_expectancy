@@ -2,7 +2,7 @@
 title: "A Predictive Model for Life Expectancy"
 author: "Rachel Tsong and Adina Zhang"
 date: "April 7, 2019"
-output: md_document
+output: html_document
 ---
 
 ```{r setup, include = FALSE}
@@ -52,13 +52,19 @@ theme1 <- trellis.par.get()
 theme1$plot.symbol$col <- rgb(.2, .4, .2, .5)
 theme1$plot.symbol$pch <- 16
 theme1$strip.background$col <- rgb(.0, .2, .6, .2)
-trellis.par.set(theme1)
+trellis.par.set(theme1) 
 featurePlot(x[,-1], y, plot = "scatter", labels = c("","Life Expectancy"))
 ```
 
 ## Model Building
 
-Our reduced dataset contained 14 possible predictors for 
+### Variables
+Our reduced dataset contained 14 possible predictors for life expectancy in years: `year`, `status` (a binary variable with 0 = developing and 1 = developed), `adult_mortality` (number of deaths per 1000 people aged 15-60), `alcohol` (average liters of alcohol consumed per capita), `hepatitis_b` (percent of 1 year olds immunized against Hep B), `bmi`, `under_five_deaths` (number of under 5 deaths per 1000), `total_expenditure` (percentage of government spending on health), `diphtheria` (percent of 1 year olds immunized againt diphtheria), `hiv_aids` (deaths from HIV/AIDS per 1000 among 0-4 year olds), `gdp`, `thinness_1_19_years` (prevalence of thinness among 1-19 year olds), `income_composition_of_resources` (human development index measure of income composition), and `schooling` (number of years).
+
+### Linear Models
+First, we fit regular least squares regression and LASSO regression. We chose these because they are widely used and easily interpretable; but because it seemed as if there were many non-linear relationships we did not necessarily expect these models to fit the data the best. However, they provided baseline RMSEs that we could compare other models to. The assumptions for these types of regressions are linearity in parameters, homoscedasticity, and errors that are normal and uncorrelated. 
+
+### GAM and MARS
 
 ## Conclusions
 
