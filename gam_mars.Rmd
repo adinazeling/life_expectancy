@@ -1,5 +1,5 @@
 ---
-title: "GAM"
+title: "GAM and MARS"
 author: "Rachel Tsong"
 date: "April 4, 2019"
 output: html_document
@@ -30,7 +30,8 @@ life_analysis = read_csv("./Life Expectancy Data.csv") %>%
 life_analysis = na.omit(life_analysis)
 ```
 
-Fit GAM
+### Fit GAM
+
 ```{r}
 gam = gam(life_expectancy ~ s(gdp) + s(hiv_aids) + s(alcohol) + s(bmi) + s(hepatitis_b) + s(total_expenditure) + s(thinness_1_19_years) +s(thinness_5_9_years) + s(under_five_deaths) + year + status + adult_mortality + income_composition_of_resources + schooling + diphtheria, data = life_analysis)
 
@@ -38,7 +39,6 @@ plot(gam)
 ```
 
 ```{r}
-broom::tidy(gam)
 summary(gam)
 ```
 
@@ -49,29 +49,81 @@ x = model.matrix(life_expectancy ~ ., life_analysis)[,-1]
 y = life_analysis$life_expectancy
 ```
 
-
+Cross validation
 ```{r}
 # create training and testing data
 set.seed(1)
-cv_life = crossv_kfold(life_analysis, k = 10) %>% 
+cv_df = crossv_kfold(life_analysis, k = 10) %>% 
           mutate(train = map(train, as_tibble),
                  test = map(test, as_tibble))
 # fit models to training data and obtain RMSEs for the testing data
-cv_life = cv_life %>% 
+cv_gam = cv_df %>% 
   mutate(gam = map(train, ~ gam(life_expectancy ~ s(gdp) + s(hiv_aids) + s(alcohol) + s(bmi) + s(hepatitis_b) + s(total_expenditure) + s(thinness_1_19_years) +s(thinness_5_9_years) + s(under_five_deaths) + year + status + adult_mortality + income_composition_of_resources + schooling + diphtheria, data = .x))) %>%
   mutate(rmse_gam = map2_dbl(gam, test, ~ rmse(model = .x, data = .y)))
 ```
 
+RMSE
 ```{r}
-mean(cv_life$rmse_gam)
+mean(cv_gam$rmse_gam)
 ```
 
+### Fit MARS
 
+```{r}
+library(earth)
+```
 
+Determine optimal tuning parameters
+```{r}
+# create a tuning grid
+hyper_grid = expand.grid(
+  degree = 1:3, 
+  nprune = seq(2, 70, length.out = 20) %>% floor()
+  )
 
+head(hyper_grid)
+```
 
+```{r}
+# for reproducibiity
+set.seed(1)
 
+# cross validated model
+tuned_mars = train(
+  x = subset(life_analysis, select = -life_expectancy),
+  y = life_analysis$life_expectancy,
+  method = "earth",
+  metric = "RMSE",
+  trControl = trainControl(method = "cv", number = 10),
+  tuneGrid = hyper_grid
+)
 
+# best model
+tuned_mars$bestTune
+
+ggplot(tuned_mars)
+```
+
+The optimal tuning parameters are 27 terms and 2 degrees
+
+```{r}
+mars = earth(life_expectancy ~ . , data = life_analysis, degree = 2, nprune = 27)
+
+summary(mars)
+```
+
+Cross validate model to determine RMSE
+```{r}
+set.seed(1)
+# fit models to training data and obtain RMSEs for the testing data
+cv_mars = cv_df %>% 
+  mutate(mars = map(train, ~ earth(life_expectancy ~ . , data = life_analysis, degree = 2, nprune = 27), data = .x)) %>%
+  mutate(rmse_mars = map2_dbl(mars, test, ~ rmse(model = .x, data = .y)))
+```
+
+```{r}
+mean(cv_mars$rmse_mars)
+```
 
 
 
