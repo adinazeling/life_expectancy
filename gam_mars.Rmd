@@ -152,6 +152,18 @@ cv_mars = cv_df %>%
 mean(cv_mars$rmse_mars)
 ```
 
+Variable importance plot
+```{r}
+# install.packages("vip")
+library(vip)
+plot = vip(tuned_mars, 
+           num_features = 15,
+           bar = FALSE, 
+           value = "gcv") + 
+  ggtitle("Predictor Importance found by Generalized Cross-Validation") +
+  theme_bw()
+plot
+```
 
 
 
