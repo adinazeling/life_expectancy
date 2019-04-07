@@ -40,7 +40,7 @@ life_exp %>% ggplot(aes(y = life_expectancy, color = status)) +
 
 # Correlation plot
 cont = na.omit(cont)
-x = model.matrix(life_expectancy ~., cont)[,-3]
+x = model.matrix(life_expectancy ~., cont)[,-c(1,3)]
 corrplot(cor(x[,-1]))
 ```
 
