@@ -2,7 +2,9 @@
 title: "A Predictive Model for Life Expectancy"
 author: "Rachel Tsong and Adina Zhang"
 date: "April 7, 2019"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 ---
 
 ```{r setup, include = FALSE}
@@ -34,7 +36,7 @@ The original data set has 22 variables and 2938 observations from 193 countries 
 
 ## EDA
 
-In exploratory data analysis, one of the main goals was to characterize the relationship of predictors with life expectancy. From the scatterplot in Figure _, we were able to conclude that several predictors potentially have a non-linear relationship with life expectancy. These predictors include GDP, thinness of children ages 1-19, BMI, total expenditure, diphtheria, HIV/AIDS, adult mortality, alcohol, and hepatitis B. 
+In exploratory data analysis, one of the main goals was to characterize the relationship of predictors with life expectancy. From the scatterplot in the figure below, we were able to conclude that several predictors potentially have a non-linear relationship with life expectancy. These predictors include GDP, thinness of children ages 1-19, BMI, total expenditure, diphtheria, HIV/AIDS, adult mortality, alcohol, and hepatitis B. 
 
 ```{r, include = FALSE, message = FALSE, warning = FALSE}
 # Load dataset
@@ -64,7 +66,7 @@ featurePlot(x[,-1], y, plot = "scatter", labels = c("","Life Expectancy"))
 ## Model Building
 
 ### Method
-The data was split into training and test sets through 10-fold cross validation. Four models were fit using the training data including least squares, Lasso, GAM, and MARS. Tuning parameters for Lasso and MARS were chosen through cross validation. To compare model results, the fitted models were used for prediction on the testing sets and RMSE was calculated for comparison.
+The data was split into training and test sets through 10-fold cross validation. Four models were fit using the training data including least squares, Lasso, GAM, and MARS. Tuning parameters for Lasso and MARS were chosen through cross validation. To compare model results, the fitted models were used for prediction on the teting sets and RMSE was calculated for comparison.
 
 ### Variables
 The reduced dataset contained 14 possible predictors for `life_expectancy` in years: `year`, `status` (a binary variable with 0 = developing and 1 = developed), `adult_mortality` (number of deaths per 1000 people aged 15-60), `alcohol` (average liters of alcohol consumed per capita), `hepatitis_b` (percent of 1 year olds immunized against Hep B), `bmi`, `under_five_deaths` (number of under 5 deaths per 1000), `total_expenditure` (percentage of government spending on health), `diphtheria` (percent of 1 year olds immunized againt diphtheria), `hiv_aids` (deaths from HIV/AIDS per 1000 among 0-4 year olds), `gdp`, `thinness_1_19_years` (prevalence of thinness among 1-19 year olds), `income_composition_of_resources` (human development index measure of income composition), and `schooling` (number of years).
@@ -187,7 +189,7 @@ cv_df %>%
 
 ## Conclusions
 
-From our analysis, it was determined that the best model to predict life expectancy was the MARS method. This method offered both flexibility when handling non-parameteric variables and a parsimonious model. Furthermore, the MARS method takes into account interaction terms that may exist which is ignored in the GAM method. 
+From our analysis, it was determined that the best model to predict life expectancy was the MARS method. This method offered both flexibility when handling non-parameteric variables and a parsimonious model. Furthermore, the MARS method takes into account interaction terms that may exist which is ignored in the GAM method. When it came to predicting life expectancy and understanding which parameters were most significant in prediction, income composition of resources was consistently important in least squares, lasso, and MARs. 
 
 \newpage
 
